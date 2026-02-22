@@ -78,7 +78,7 @@ For the wargaming agent, create the project config:
 mkdir -p /home/<user>/.openclaw/workspace/config
 cat > /home/<user>/.openclaw/workspace/config/mcporter.json << 'EOF'
 {
-  "servers": {
+  "mcpServers": {
     "rulebooks": {
       "baseUrl": "http://localhost:8100/sse"
     }
