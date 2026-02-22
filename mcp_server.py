@@ -17,6 +17,7 @@ import httpx
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool
+from mcp.server import InitializationOptions
 from qdrant_client import QdrantClient
 
 CONFIG_PATH = Path(__file__).parent / "config.json"
@@ -28,6 +29,15 @@ def load_config():
 
 
 CONFIG = load_config()
+
+INIT_OPTIONS = InitializationOptions(
+    server_name="rag-rulebooks",
+    server_version="0.1.0",
+    capabilities=server.get_capabilities(
+        notification_options=None,
+        experimental_capabilities=None,
+    ),
+)
 qdrant = QdrantClient(url=CONFIG["qdrant_url"])
 server = Server("rag-rulebooks")
 
@@ -170,7 +180,7 @@ async def list_sources() -> list[TextContent]:
 
 async def main_stdio():
     async with stdio_server() as (read_stream, write_stream):
-        await server.run(read_stream, write_stream)
+        await server.run(read_stream, write_stream, INIT_OPTIONS)
 
 
 if __name__ == "__main__":
@@ -190,7 +200,7 @@ if __name__ == "__main__":
 
         async def handle_sse(request):
             async with sse.connect_sse(request.scope, request.receive, request._send) as streams:
-                await server.run(streams[0], streams[1])
+                await server.run(streams[0], streams[1], INIT_OPTIONS)
 
         app = Starlette(routes=[
             Route("/sse", endpoint=handle_sse),
