@@ -29,6 +29,8 @@ def load_config():
 
 
 CONFIG = load_config()
+qdrant = QdrantClient(url=CONFIG["qdrant_url"])
+server = Server("rag-rulebooks")
 
 INIT_OPTIONS = InitializationOptions(
     server_name="rag-rulebooks",
@@ -38,8 +40,6 @@ INIT_OPTIONS = InitializationOptions(
         experimental_capabilities=None,
     ),
 )
-qdrant = QdrantClient(url=CONFIG["qdrant_url"])
-server = Server("rag-rulebooks")
 
 
 def get_embedding(text: str) -> list[float]:
