@@ -27,7 +27,7 @@ def load_config():
 
 CONFIG = load_config()
 qdrant = QdrantClient(url=CONFIG["qdrant_url"])
-mcp = FastMCP("rag-rulebooks")
+mcp = FastMCP("rag-rulebooks", host="127.0.0.1", port=8100)
 
 
 def get_embedding(text: str) -> list[float]:
@@ -123,6 +123,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.http:
-        mcp.run(transport="streamable-http", host="127.0.0.1", port=8100)
+        mcp.run(transport="streamable-http")
     else:
         mcp.run(transport="stdio")
