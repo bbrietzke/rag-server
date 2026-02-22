@@ -80,12 +80,17 @@ cat > /home/<user>/.openclaw/workspace/config/mcporter.json << 'EOF'
 {
   "servers": {
     "rulebooks": {
-      "url": "http://localhost:8100/sse",
-      "transport": "sse"
+      "baseUrl": "http://localhost:8100/sse"
     }
   }
 }
 EOF
+```
+
+Or use the CLI:
+
+```bash
+mcporter config add rulebooks --url http://localhost:8100/sse --transport sse
 ```
 
 Verify it works:
