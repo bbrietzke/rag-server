@@ -80,7 +80,8 @@ cat > /home/<user>/.openclaw/workspace/config/mcporter.json << 'EOF'
 {
   "mcpServers": {
     "rulebooks": {
-      "baseUrl": "http://localhost:8100/sse"
+      "baseUrl": "http://localhost:8100/sse",
+      "transport": "sse"
     }
   }
 }
@@ -92,6 +93,8 @@ Or use the CLI:
 ```bash
 mcporter config add rulebooks --url http://localhost:8100/sse --transport sse
 ```
+
+> **Note:** You must specify `"transport": "sse"` — mcporter defaults to Streamable HTTP which is a different protocol.
 
 Verify it works:
 
