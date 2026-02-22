@@ -1,0 +1,16 @@
+[Unit]
+Description=RAG MCP Server for Rulebook Search
+After=network.target docker.service
+Wants=docker.service
+
+[Service]
+Type=simple
+User=openclaw
+WorkingDirectory=/opt/rag-server
+ExecStart=/opt/rag-server/venv/bin/python /opt/rag-server/mcp_server.py --http
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

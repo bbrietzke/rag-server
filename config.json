@@ -1,0 +1,9 @@
+{
+  "qdrant_url": "http://localhost:6333",
+  "qdrant_collection": "rulebooks",
+  "ollama_url": "http://localhost:11434",
+  "embed_model": "nomic-embed-text",
+  "chunk_size": 500,
+  "chunk_overlap": 50,
+  "top_k": 5
+}
