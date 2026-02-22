@@ -67,9 +67,16 @@ python ingest.py /path/to/rulebooks/
 
 ### 5. Connect to OpenClaw via mcporter
 
-Add to the wargaming agent's mcporter config:
+mcporter looks for config in two places (in order):
 
-```json
+1. **Project config:** `<openclaw-workspace>/config/mcporter.json`
+2. **System config:** `~/.mcporter/mcporter.json`
+
+For the wargaming agent, create the project config:
+
+```bash
+mkdir -p /home/<user>/.openclaw/workspace/config
+cat > /home/<user>/.openclaw/workspace/config/mcporter.json << 'EOF'
 {
   "servers": {
     "rulebooks": {
@@ -78,6 +85,14 @@ Add to the wargaming agent's mcporter config:
     }
   }
 }
+EOF
+```
+
+Verify it works:
+
+```bash
+mcporter list              # should show "rulebooks" server
+mcporter list rulebooks    # should show search_rules + list_sources tools
 ```
 
 Then the agent gets two tools:
