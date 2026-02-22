@@ -3,8 +3,9 @@
 Ingest PDF rulebooks into Qdrant for RAG.
 
 Usage:
-    python ingest.py /path/to/rulebook.pdf [--collection rulebooks]
-    python ingest.py /path/to/folder/       # ingests all PDFs in folder
+    python ingest.py /path/to/rulebook.pdf  [--collection rulebooks]
+    python ingest.py /path/to/rulebook.epub [--collection rulebooks]
+    python ingest.py /path/to/folder/        # ingests all PDFs and EPUBs in folder
 """
 
 import argparse
@@ -15,6 +16,8 @@ from pathlib import Path
 
 import fitz  # PyMuPDF
 import httpx
+from ebooklib import epub
+from bs4 import BeautifulSoup
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, PointStruct, VectorParams
 
@@ -36,6 +39,20 @@ def extract_text_from_pdf(pdf_path: str) -> list[dict]:
             pages.append({"page": i + 1, "text": text})
     doc.close()
     return pages
+
+
+def extract_text_from_epub(epub_path: str) -> list[dict]:
+    """Extract text chapter by chapter from an EPUB."""
+    book = epub.read_epub(epub_path, options={"ignore_ncx": True})
+    chapters = []
+    chapter_num = 0
+    for item in book.get_items_of_type(9):  # ITEM_DOCUMENT
+        soup = BeautifulSoup(item.get_content(), "html.parser")
+        text = soup.get_text(separator=" ", strip=True)
+        if text:
+            chapter_num += 1
+            chapters.append({"page": chapter_num, "text": text})
+    return chapters
 
 
 def chunk_text(text: str, chunk_size: int, overlap: int) -> list[str]:
@@ -82,11 +99,15 @@ def ensure_collection(client: QdrantClient, collection: str, vector_size: int):
 
 def ingest_pdf(pdf_path: str, config: dict, client: QdrantClient):
     """Ingest a single PDF into Qdrant."""
-    pdf_name = Path(pdf_path).stem
+    file_path_obj = Path(pdf_path)
+    pdf_name = file_path_obj.stem
     print(f"\n📖 Ingesting: {pdf_name}")
 
     # Extract
-    pages = extract_text_from_pdf(pdf_path)
+    if file_path_obj.suffix.lower() == ".epub":
+        pages = extract_text_from_epub(pdf_path)
+    else:
+        pages = extract_text_from_pdf(pdf_path)
     print(f"   Extracted {len(pages)} pages")
 
     # Chunk
@@ -154,15 +175,18 @@ def main():
     client = QdrantClient(url=config["qdrant_url"])
 
     path = Path(args.path)
-    if path.is_file() and path.suffix.lower() == ".pdf":
+    supported = {".pdf", ".epub"}
+    if path.is_file() and path.suffix.lower() in supported:
         ingest_pdf(str(path), config, client)
     elif path.is_dir():
-        pdfs = sorted(path.glob("*.pdf")) + sorted(path.glob("*.PDF"))
-        if not pdfs:
-            print(f"No PDFs found in {path}")
+        files = sorted(
+            f for f in path.iterdir() if f.suffix.lower() in supported
+        )
+        if not files:
+            print(f"No PDFs or EPUBs found in {path}")
             sys.exit(1)
-        for pdf in pdfs:
-            ingest_pdf(str(pdf), config, client)
+        for f in files:
+            ingest_pdf(str(f), config, client)
     else:
         print(f"Not a PDF file or directory: {path}")
         sys.exit(1)

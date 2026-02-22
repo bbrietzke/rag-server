@@ -2,3 +2,5 @@ qdrant-client>=1.7.0
 pymupdf>=1.23.0
 httpx>=0.25.0
 mcp>=1.0.0
+ebooklib>=0.18
+beautifulsoup4>=4.12.0
