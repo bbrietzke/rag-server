@@ -192,23 +192,39 @@ if __name__ == "__main__":
 
     if args.http:
         from mcp.server.sse import SseServerTransport
-        from starlette.applications import Starlette
-        from starlette.routing import Mount, Route
         import uvicorn
 
         sse = SseServerTransport("/messages/")
 
-        async def handle_sse(scope, receive, send):
-            async with sse.connect_sse(scope, receive, send) as streams:
-                await server.run(streams[0], streams[1], INIT_OPTIONS)
+        async def app(scope, receive, send):
+            if scope["type"] == "lifespan":
+                # Handle lifespan protocol
+                while True:
+                    msg = await receive()
+                    if msg["type"] == "lifespan.startup":
+                        await send({"type": "lifespan.startup.complete"})
+                    elif msg["type"] == "lifespan.shutdown":
+                        await send({"type": "lifespan.shutdown.complete"})
+                        return
+            
+            path = scope.get("path", "")
+            
+            if path == "/sse":
+                async with sse.connect_sse(scope, receive, send) as streams:
+                    await server.run(streams[0], streams[1], INIT_OPTIONS)
+            elif path.startswith("/messages"):
+                await sse.handle_post_message(scope, receive, send)
+            else:
+                await send({
+                    "type": "http.response.start",
+                    "status": 404,
+                    "headers": [[b"content-type", b"text/plain"]],
+                })
+                await send({
+                    "type": "http.response.body",
+                    "body": b"Not Found",
+                })
 
-        async def handle_messages(scope, receive, send):
-            await sse.handle_post_message(scope, receive, send)
-
-        app = Starlette(routes=[
-            Mount("/sse", app=handle_sse),
-            Mount("/messages", app=handle_messages),
-        ])
         uvicorn.run(app, host="127.0.0.1", port=8100)
     else:
         asyncio.run(main_stdio())
