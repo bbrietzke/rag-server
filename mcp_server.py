@@ -67,19 +67,21 @@ def search_rules(query: str, top_k: int = 5, source_filter: str = "") -> str:
         )
 
     # Search
-    results = qdrant.search(
+    from qdrant_client.models import models
+
+    results = qdrant.query_points(
         collection_name=CONFIG["qdrant_collection"],
-        query_vector=query_vector,
+        query=query_vector,
         query_filter=search_filter,
         limit=top_k,
     )
 
-    if not results:
+    if not results.points:
         return "No relevant rules found for that query."
 
     # Format results
     output_parts = [f"## Results for: {query}\n"]
-    for i, hit in enumerate(results, 1):
+    for i, hit in enumerate(results.points, 1):
         payload = hit.payload
         score = hit.score
         output_parts.append(
