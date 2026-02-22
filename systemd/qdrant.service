@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Type=simple
 User=qdrant
-ExecStart=/usr/local/bin/qdrant --config-path /etc/qdrant/config.yaml
+ExecStart=/usr/bin/qdrant --config-path /etc/qdrant/config.yaml
 Restart=always
 RestartSec=5
 LimitNOFILE=65536

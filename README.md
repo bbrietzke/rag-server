@@ -16,6 +16,8 @@ Everything runs locally on the same host.
 
 ### 1. Install Qdrant
 
+Qdrant runs as a native binary at `/usr/bin/qdrant`.
+
 ```bash
 # Copy systemd unit
 sudo cp systemd/qdrant.service /etc/systemd/system/
